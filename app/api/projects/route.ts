@@ -1,12 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createServerClient } from '@/lib/supabase';
 
 const projectSchema = z.object({
   customer_id: z.string().uuid(),
@@ -24,7 +19,7 @@ const projectSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const customerId = request.nextUrl.searchParams.get('customer_id');
-
+    const supabase = createServerClient();
     let query = supabase.from('projects').select('*');
 
     if (customerId) {
@@ -57,7 +52,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const projectData = projectSchema.parse(body);
-
+    const supabase = createServerClient();
     const { data, error } = await supabase
       .from('projects')
       .insert({
@@ -99,7 +94,7 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const { id, ...updates } = body;
-
+    const supabase = createServerClient();
     const { data, error } = await supabase
       .from('projects')
       .update(updates)
@@ -140,6 +135,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    const supabase = createServerClient();
     const { error } = await supabase
       .from('projects')
       .delete()

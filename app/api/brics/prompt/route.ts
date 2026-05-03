@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
     const Anthropic = (await import('@anthropic-ai/sdk')).default;
     const client = new Anthropic({ apiKey });
 
-    const message = await client.messages.create({
+    const message = await client.beta.messages.create({
       model: 'claude-3-5-haiku-20241022',
       max_tokens: 1024,
       system: buildSystemPrompt(bricId),
