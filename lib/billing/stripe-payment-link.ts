@@ -22,9 +22,9 @@ export interface StripePaymentLinkResult {
   paymentStage: PaymentLinkStage;
 }
 
-let stripeClient: Stripe | null = null;
+let stripeClient: Stripe.Stripe | null = null;
 
-function getStripeClient(): Stripe {
+function getStripeClient(): Stripe.Stripe {
   if (stripeClient) {
     return stripeClient;
   }
@@ -35,7 +35,7 @@ function getStripeClient(): Stripe {
   }
 
   stripeClient = new Stripe(secretKey, {
-    apiVersion: '2023-10-16',
+    apiVersion: '2026-04-22.dahlia',
   });
 
   return stripeClient;
@@ -89,7 +89,6 @@ export async function createStripePaymentLink(
       metadata,
     },
     metadata,
-    customer_email: input.customerEmail,
   });
 
   return {

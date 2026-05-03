@@ -79,14 +79,6 @@ class SecurityAuditor {
       /-----BEGIN [A-Z ]+KEY-----/g,
     ]
 
-    const filesToCheck = [
-      'package.json',
-      '.env.example',
-      'brics/**/*.ts',
-      'lib/**/*.ts',
-      'scripts/**/*.ts',
-    ]
-
     let secretsFound = false
 
     for (const pattern of secretPatterns) {
@@ -237,9 +229,6 @@ class SecurityAuditor {
   }
 
   private async auditEncryption(): Promise<void> {
-    // Check for TLS configuration
-    const tlsEnabled = process.env.TLS_ENABLED !== 'false'
-
     this.checks.push({
       name: 'TLS/SSL encryption enabled',
       category: 'encryption',

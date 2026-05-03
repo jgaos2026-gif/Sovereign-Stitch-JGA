@@ -145,16 +145,18 @@ export async function POST(request: NextRequest) {
     const Anthropic = (await import('@anthropic-ai/sdk')).default;
     const client = new Anthropic({ apiKey });
 
-    const message = await client.messages.create({
+    const message = await client.beta.messages.create({
       model: 'claude-3-5-haiku-20241022',
       max_tokens: 1024,
       system: buildSystemPrompt(bricId),
       messages: [{ role: 'user', content: prompt }],
     });
 
-    const textContent = message.content.find((c) => c.type === 'text');
-    const responseText =
-      textContent && textContent.type === 'text' ? textContent.text : 'No response generated.';
+    type TextContent = { type: 'text'; text: string };
+    const textContent = message.content.find(
+      (c: { type: string }): c is TextContent => c.type === 'text'
+    );
+    const responseText = textContent ? textContent.text : 'No response generated.';
 
     return NextResponse.json({ bricId, response: responseText, demo: false }, { status: 200 });
   } catch (err) {

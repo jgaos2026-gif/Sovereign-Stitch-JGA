@@ -9,7 +9,7 @@ const mtlsConfig = { serviceName: 'state-bric', certPath: 'cert', keyPath: 'key'
 function mockHttpsRequest(responseBody: string) {
   const requestSpy = vi.spyOn(https, 'request').mockImplementation((_, __, callback) => {
     const response = new EventEmitter() as any;
-    callback(response);
+    if (callback) callback(response);
 
     process.nextTick(() => {
       response.emit('data', responseBody);
