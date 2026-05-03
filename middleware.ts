@@ -1,11 +1,19 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PUBLIC_PATHS = ['/', '/login', '/register', '/api/auth/login', '/api/auth/register', '/api/health'];
+const PUBLIC_PATHS = [
+  '/',
+  '/login',
+  '/register',
+  '/api/auth/login',
+  '/api/auth/register',
+  '/api/health',
+  '/api/brics',
+];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some(
-    (p) => pathname === p || pathname.startsWith('/api/auth/'),
+    (p) => pathname === p || pathname.startsWith('/api/auth/') || pathname.startsWith('/api/brics'),
   );
 }
 
