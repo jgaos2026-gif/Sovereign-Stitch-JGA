@@ -2,13 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
   typescript: {
-    tsconfigPath: './tsconfig.json',
-    // The tsconfig intentionally includes scripts/ and brics/ directories
-    // that contain pre-existing type errors unrelated to the Next.js app.
-    // The core API-route type error (Anthropic SDK messages API) has been
-    // fixed.  This flag prevents those out-of-scope errors from blocking the
-    // static export build for GitHub Pages.
-    ignoreBuildErrors: true,
+    // Use the build-scoped tsconfig that excludes scripts/, brics/, and tests/
+    // directories (which have their own type-checking contexts and contain
+    // pre-existing errors unrelated to the Next.js app).
+    tsconfigPath: './tsconfig.build.json',
   },
   eslint: {
     dirs: ['app', 'components', 'lib', 'tests'],
