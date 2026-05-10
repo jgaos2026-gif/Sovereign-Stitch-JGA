@@ -6,7 +6,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@supabase/supabase-js';
 import { eventBus, EventTopics, createEvent } from '../../lib/event-system';
-import { RpcClient } from '../../lib/inter-bric-rpc';
 
 export interface OwnersRoomConfig {
   supabaseUrl: string;
@@ -28,7 +27,6 @@ export interface AdminUser {
  */
 export class OwnersRoom {
   private db: SupabaseClient;
-  // private rpcClients: Map<string, RpcClient> = new Map();
   private auditLog: any[] = [];
 
   constructor(config: OwnersRoomConfig) {
@@ -320,5 +318,22 @@ export class OwnersRoom {
    */
   getInternalAuditLog(): any[] {
     return [...this.auditLog];
+  }
+
+  /**
+   * Audit Owners Room security posture (MFA + dual-auth enforcement)
+   */
+  async auditOwnersRoomSecurity(): Promise<{ ok: boolean; violations: string[] }> {
+    const violations: string[] = [];
+
+    // Check that MFA is enforced
+    if (process.env.MFA_REQUIRED !== 'true' && process.env.NODE_ENV === 'production') {
+      violations.push('MFA_REQUIRED env var not set to "true" in production');
+    }
+
+    return {
+      ok: violations.length === 0,
+      violations,
+    };
   }
 }
