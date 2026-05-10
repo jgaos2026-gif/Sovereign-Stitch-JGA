@@ -2,8 +2,21 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'JGA Enterprise OS',
-  description: 'Enterprise Operating System for JGA',
+  metadataBase: new URL('https://www.jgaos2026-gif.com'),
+  title: "JGA Enterprise OS | Jay's Graphic Arts LLC",
+  description:
+    "Enterprise Operating System for Jay's Graphic Arts LLC — secure, compliant, and scalable business operations powered by 8 System Laws.",
+  openGraph: {
+    title: "JGA Enterprise OS | Jay's Graphic Arts LLC",
+    description:
+      "Enterprise Operating System for Jay's Graphic Arts LLC — secure, compliant, and scalable business operations powered by 8 System Laws.",
+    url: 'https://www.jgaos2026-gif.com',
+    siteName: 'JGA Enterprise OS',
+    type: 'website',
+  },
+  alternates: {
+    canonical: 'https://www.jgaos2026-gif.com',
+  },
 };
 
 export default function RootLayout({
