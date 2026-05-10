@@ -1,25 +1,37 @@
-FROM node:18-alpine
-
+# ---- Stage 1: install dependencies ----
+FROM node:20-alpine AS deps
 WORKDIR /app
-
-# Install dependencies
 COPY package*.json ./
 RUN npm ci --no-audit
 
-# Copy source code
+# ---- Stage 2: build ----
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN npm run build
 
-# Build TypeScript
-RUN npm run build 2>/dev/null || echo "Build step not needed"
+# ---- Stage 3: production runner ----
+FROM node:20-alpine AS runner
+WORKDIR /app
 
-# Health check
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+# wget is needed for the HEALTHCHECK below
+RUN apk add --no-cache wget
+
+# Copy only what Next.js standalone output needs
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+
+EXPOSE 3000
+
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:8080/health', (r) => {if (r.statusCode !== 200) throw new Error('Health check failed')})"
+  CMD wget -qO- http://localhost:3000/api/health || exit 1
 
-# Expose ports
-EXPOSE 8080 9090
-
-# Run with proper signals
 STOPSIGNAL SIGTERM
 
-CMD ["node", "--enable-source-maps", "-r", "ts-node/register", "scripts/launch.ts"]
+CMD ["node", "server.js"]

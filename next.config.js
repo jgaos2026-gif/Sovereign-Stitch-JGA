@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Do NOT set output: 'export' — API routes require the Node.js runtime
+  // Standalone output bundles only the files needed to run the app, ideal for Docker.
+  output: 'standalone',
   typescript: {
     tsconfigPath: './tsconfig.json',
   },
