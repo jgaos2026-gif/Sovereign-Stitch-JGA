@@ -1,12 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createServerClient } from '@/lib/supabase';
 
 // Validation schemas
 const loginSchema = z.object({
@@ -20,6 +15,7 @@ const loginSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createServerClient();
     const body = await request.json();
     const { email, password } = loginSchema.parse(body);
 
@@ -55,6 +51,7 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createServerClient();
     const token = request.headers.get('authorization')?.split(' ')[1];
     
     if (token) {

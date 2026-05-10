@@ -1,11 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createServerClient } from '@/lib/supabase';
 
 /**
  * GET /api/contracts
@@ -13,6 +8,7 @@ const supabase = createClient(
  */
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createServerClient();
     const projectId = request.nextUrl.searchParams.get('project_id');
 
     let query = supabase.from('contracts').select('*');
@@ -45,6 +41,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createServerClient();
     const body = await request.json();
     const { project_id, contractor_id, terms, amount, state_code } = body;
 
@@ -86,6 +83,7 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
+    const supabase = createServerClient();
     const body = await request.json();
     const { id, ...updates } = body;
 
@@ -120,6 +118,7 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
+    const supabase = createServerClient();
     const id = request.nextUrl.searchParams.get('id');
 
     if (!id) {

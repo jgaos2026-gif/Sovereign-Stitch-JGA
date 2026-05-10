@@ -1,12 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createServerClient } from '@/lib/supabase';
 
 const transactionSchema = z.object({
   project_id: z.string().uuid(),
@@ -23,6 +18,7 @@ const transactionSchema = z.object({
  */
 export async function GET(request: NextRequest) {
   try {
+    const supabase = createServerClient();
     const projectId = request.nextUrl.searchParams.get('project_id');
     const customerId = request.nextUrl.searchParams.get('customer_id');
 
@@ -60,6 +56,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const supabase = createServerClient();
     const body = await request.json();
     const transactionData = transactionSchema.parse(body);
 
@@ -102,6 +99,7 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
+    const supabase = createServerClient();
     const body = await request.json();
     const { id, status } = body;
 

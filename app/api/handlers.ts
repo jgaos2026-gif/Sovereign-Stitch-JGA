@@ -5,14 +5,9 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@/lib/supabase';
 import { z } from 'zod';
 import { eventBus, createEvent, EventTopics } from '@/lib/event-system';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 // Input validation schemas
 const intakeSchema = z.object({
@@ -107,6 +102,7 @@ export async function handleCreateCustomer(req: NextRequest, state: string) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const supabase = createServerClient();
     const body = await req.json();
     const customer = customerSchema.parse(body);
 
@@ -166,6 +162,7 @@ export async function handleCreateProject(req: NextRequest, state: string) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const supabase = createServerClient();
     const body = await req.json();
     const project = projectSchema.parse(body);
 
@@ -225,6 +222,7 @@ export async function handleCreateProject(req: NextRequest, state: string) {
  */
 export async function handleGetProject(_req: NextRequest, state: string, id: string) {
   try {
+    const supabase = createServerClient();
     const { data, error } = await supabase
       .from('projects')
       .select('*')
@@ -260,6 +258,7 @@ export async function handleRecordTransaction(req: NextRequest, state: string) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const supabase = createServerClient();
     const body = await req.json();
     const tx = transactionSchema.parse(body);
 
@@ -339,6 +338,7 @@ export async function handlePaymentWebhook(req: NextRequest) {
 
     const { transaction_id, amount, project_id, state_code } = body;
 
+    const supabase = createServerClient();
     // Record transaction
     const { error } = await supabase
       .from('transactions')
@@ -389,6 +389,7 @@ export async function handleLogin(req: NextRequest) {
   try {
     const { email, password } = await req.json();
 
+    const supabase = createServerClient();
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -433,6 +434,7 @@ export async function handleMfaVerify(req: NextRequest) {
       );
     }
 
+    const supabase = createServerClient();
     // Mark user as MFA-verified (4 hour window)
     await supabase
       .from('user_roles')
