@@ -1,12 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@/lib/supabase';
 import { z } from 'zod';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 const projectSchema = z.object({
   customer_id: z.string().uuid(),
@@ -25,7 +21,7 @@ export async function GET(request: NextRequest) {
   try {
     const customerId = request.nextUrl.searchParams.get('customer_id');
 
-    let query = supabase.from('projects').select('*');
+    let query = createServerClient().from('projects').select('*');
 
     if (customerId) {
       query = query.eq('customer_id', customerId);

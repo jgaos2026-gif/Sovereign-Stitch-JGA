@@ -5,14 +5,10 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@/lib/supabase';
 import { z } from 'zod';
 import { eventBus, createEvent, EventTopics } from '@/lib/event-system';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 // Input validation schemas
 const intakeSchema = z.object({
@@ -389,7 +385,7 @@ export async function handleLogin(req: NextRequest) {
   try {
     const { email, password } = await req.json();
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await createServerClient().auth.signInWithPassword({
       email,
       password,
     });

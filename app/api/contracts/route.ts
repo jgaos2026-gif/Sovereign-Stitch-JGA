@@ -1,11 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@/lib/supabase';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 /**
  * GET /api/contracts
@@ -15,7 +11,7 @@ export async function GET(request: NextRequest) {
   try {
     const projectId = request.nextUrl.searchParams.get('project_id');
 
-    let query = supabase.from('contracts').select('*');
+    let query = createServerClient().from('contracts').select('*');
 
     if (projectId) {
       query = query.eq('project_id', projectId);
