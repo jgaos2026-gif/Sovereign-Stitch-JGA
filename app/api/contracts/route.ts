@@ -1,11 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getAuthenticatedActor } from '@/lib/supabase';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 /**
  * GET /api/contracts
@@ -13,6 +9,12 @@ const supabase = createClient(
  */
 export async function GET(request: NextRequest) {
   try {
+    const actor = await getAuthenticatedActor(request);
+    if (!actor) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!['owner', 'admin', 'staff'].includes(actor.profile.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    const supabase = actor.supabase;
     const projectId = request.nextUrl.searchParams.get('project_id');
 
     let query = supabase.from('contracts').select('*');
@@ -45,6 +47,12 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const actor = await getAuthenticatedActor(request);
+    if (!actor) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!['owner', 'admin', 'staff'].includes(actor.profile.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    const supabase = actor.supabase;
     const body = await request.json();
     const { project_id, contractor_id, terms, amount, state_code } = body;
 
@@ -86,6 +94,12 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
+    const actor = await getAuthenticatedActor(request);
+    if (!actor) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!['owner', 'admin', 'staff'].includes(actor.profile.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    const supabase = actor.supabase;
     const body = await request.json();
     const { id, ...updates } = body;
 
@@ -118,37 +132,6 @@ export async function PUT(request: NextRequest) {
  * DELETE /api/contracts
  * Delete contract
  */
-export async function DELETE(request: NextRequest) {
-  try {
-    const id = request.nextUrl.searchParams.get('id');
-
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Contract ID required' },
-        { status: 400 }
-      );
-    }
-
-    const { error } = await supabase
-      .from('contracts')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: true },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to delete contract' },
-      { status: 500 }
-    );
-  }
+export async function DELETE(_request: NextRequest) {
+  return NextResponse.json({ error: 'Records are retained; use a governed inactive/void state.' }, { status: 405 });
 }

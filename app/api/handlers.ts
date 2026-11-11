@@ -5,14 +5,10 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@/lib/supabase';
 import { z } from 'zod';
 import { eventBus, createEvent, EventTopics } from '@/lib/event-system';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 // Input validation schemas
 const intakeSchema = z.object({
@@ -111,7 +107,7 @@ export async function handleCreateCustomer(req: NextRequest, state: string) {
     const customer = customerSchema.parse(body);
 
     // Insert into state schema
-    const { data, error } = await supabase
+    const { data, error } = await createServerClient()
       .from('customers')
       .insert({
         state_code: state,
@@ -169,7 +165,7 @@ export async function handleCreateProject(req: NextRequest, state: string) {
     const body = await req.json();
     const project = projectSchema.parse(body);
 
-    const { data, error } = await supabase
+    const { data, error } = await createServerClient()
       .from('projects')
       .insert({
         state_code: state,
@@ -225,7 +221,7 @@ export async function handleCreateProject(req: NextRequest, state: string) {
  */
 export async function handleGetProject(_req: NextRequest, state: string, id: string) {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await createServerClient()
       .from('projects')
       .select('*')
       .eq('id', id)
@@ -263,7 +259,7 @@ export async function handleRecordTransaction(req: NextRequest, state: string) {
     const body = await req.json();
     const tx = transactionSchema.parse(body);
 
-    const { data, error } = await supabase
+    const { data, error } = await createServerClient()
       .from('transactions')
       .insert({
         state_code: state,
@@ -285,7 +281,7 @@ export async function handleRecordTransaction(req: NextRequest, state: string) {
 
     // Update project deposit status if deposit
     if (tx.type === 'deposit') {
-      await supabase
+      await createServerClient()
         .from('projects')
         .update({ deposit_status: 'confirmed' })
         .eq('id', tx.project_id);
@@ -340,7 +336,7 @@ export async function handlePaymentWebhook(req: NextRequest) {
     const { transaction_id, amount, project_id, state_code } = body;
 
     // Record transaction
-    const { error } = await supabase
+    const { error } = await createServerClient()
       .from('transactions')
       .insert({
         state_code,
@@ -389,7 +385,7 @@ export async function handleLogin(req: NextRequest) {
   try {
     const { email, password } = await req.json();
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await createServerClient().auth.signInWithPassword({
       email,
       password,
     });
@@ -434,7 +430,7 @@ export async function handleMfaVerify(req: NextRequest) {
     }
 
     // Mark user as MFA-verified (4 hour window)
-    await supabase
+    await createServerClient()
       .from('user_roles')
       .update({ mfa_verified_at: new Date().toISOString() })
       .eq('user_id', userId);

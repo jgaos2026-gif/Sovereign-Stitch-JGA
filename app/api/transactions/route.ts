@@ -1,12 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getAuthenticatedActor } from '@/lib/supabase';
 import { z } from 'zod';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 const transactionSchema = z.object({
   project_id: z.string().uuid(),
@@ -23,6 +19,12 @@ const transactionSchema = z.object({
  */
 export async function GET(request: NextRequest) {
   try {
+    const actor = await getAuthenticatedActor(request);
+    if (!actor) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!['owner', 'admin', 'staff'].includes(actor.profile.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    const supabase = actor.supabase;
     const projectId = request.nextUrl.searchParams.get('project_id');
     const customerId = request.nextUrl.searchParams.get('customer_id');
 
@@ -58,74 +60,11 @@ export async function GET(request: NextRequest) {
  * POST /api/transactions
  * Create new transaction (payment/deposit/refund)
  */
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const transactionData = transactionSchema.parse(body);
-
-    const { data, error } = await supabase
-      .from('transactions')
-      .insert({
-        project_id: transactionData.project_id,
-        customer_id: transactionData.customer_id,
-        type: transactionData.type,
-        amount: transactionData.amount,
-        reference_id: transactionData.reference_id,
-        state_code: transactionData.state_code,
-        status: 'pending',
-        created_at: new Date().toISOString(),
-      })
-      .select();
-
-    if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: true, transaction: data[0] },
-      { status: 201 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to create transaction' },
-      { status: 500 }
-    );
-  }
+export async function POST(_request: NextRequest) {
+  return NextResponse.json({ error: 'Transactions are created only by verified payment webhooks.' }, { status: 405 });
 }
 
-/**
- * PUT /api/transactions
- * Update transaction status
- */
-export async function PUT(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { id, status } = body;
-
-    const { data, error } = await supabase
-      .from('transactions')
-      .update({ status, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .select();
-
-    if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: true, transaction: data[0] },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to update transaction' },
-      { status: 500 }
-    );
-  }
+/** PUT /api/transactions */
+export async function PUT(_request: NextRequest) {
+  return NextResponse.json({ error: 'Transactions are append-only.' }, { status: 405 });
 }
