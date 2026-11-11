@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase';
+import { getAuthenticatedActor } from '@/lib/supabase';
 import { z } from 'zod';
 
 
@@ -19,9 +19,15 @@ const projectSchema = z.object({
  */
 export async function GET(request: NextRequest) {
   try {
+    const actor = await getAuthenticatedActor(request);
+    if (!actor) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!['owner', 'admin', 'staff'].includes(actor.profile.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    const supabase = actor.supabase;
     const customerId = request.nextUrl.searchParams.get('customer_id');
 
-    let query = createServerClient().from('projects').select('*');
+    let query = supabase.from('projects').select('*');
 
     if (customerId) {
       query = query.eq('customer_id', customerId);
@@ -51,6 +57,12 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const actor = await getAuthenticatedActor(request);
+    if (!actor) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!['owner', 'admin', 'staff'].includes(actor.profile.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    const supabase = actor.supabase;
     const body = await request.json();
     const projectData = projectSchema.parse(body);
 
@@ -93,6 +105,12 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
   try {
+    const actor = await getAuthenticatedActor(request);
+    if (!actor) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!['owner', 'admin', 'staff'].includes(actor.profile.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    const supabase = actor.supabase;
     const body = await request.json();
     const { id, ...updates } = body;
 
@@ -125,37 +143,6 @@ export async function PUT(request: NextRequest) {
  * DELETE /api/projects
  * Delete project
  */
-export async function DELETE(request: NextRequest) {
-  try {
-    const id = request.nextUrl.searchParams.get('id');
-
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Project ID required' },
-        { status: 400 }
-      );
-    }
-
-    const { error } = await supabase
-      .from('projects')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: true },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to delete project' },
-      { status: 500 }
-    );
-  }
+export async function DELETE(_request: NextRequest) {
+  return NextResponse.json({ error: 'Records are retained; use a governed inactive/void state.' }, { status: 405 });
 }
